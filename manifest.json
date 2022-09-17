@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Awesome Dictation",
+  "version": "0.0.1",
+  "description": "Leaning English with Youtube",
+  "host_permissions": ["https://*.youtube.com/*"],
+  "content_scripts": [
+    {
+      "js": ["src/main.tsx"],
+      "matches": ["https://*.youtube.com/*"]
+    }
+  ]
+}
