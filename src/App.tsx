@@ -1,47 +1,87 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import "./App.css";
 
+interface Caption {
+  index: number;
+  textContent: string;
+  wordList: string[];
+  letterList: string[];
+}
+
 const App: React.FC = () => {
-  const [subtitles, setSubtitles] = useState<string | null>();
+  const [captions, setCaptions] = useState<Caption[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const subsElement = document.getElementsByClassName(
-    "ytp-caption-window-container"
-  )[0];
-  const videoElement: any = document.getElementsByClassName("video-stream")[0];
+  const videoElement = document.getElementsByClassName("video-stream")[0];
 
-  const observer = new MutationObserver(() => {
-    setSubtitles(subsElement.textContent);
-    videoElement.pause();
-  });
+  useEffect(() => {
+    const subsElement = document.getElementsByClassName(
+      "ytp-caption-window-container"
+    )[0];
 
-  observer.observe(subsElement, { childList: true });
+    const observer = new MutationObserver(() => {
+      const textContent = subsElement.textContent?.replace(/^- */g, "") ?? "";
 
-  const onInputLetter = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number
+      const captionElement = document.getElementsByClassName(
+        "caption-window ytp-caption-window-bottom"
+      )[0];
+      const index = captionElement
+        ?.getAttribute("id")
+        ?.replace(/^caption-window-_/g, "");
+
+      setCaptions((c) => {
+        return [
+          ...c,
+          {
+            index: Number(index),
+            textContent,
+            wordList: textContent.split(" "),
+            letterList: textContent.split(""),
+          },
+        ];
+      });
+
+      (videoElement as HTMLVideoElement).pause();
+    });
+
+    observer.observe(subsElement, { childList: true });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const onInput = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    letter: string,
+    letterIndex: number
   ) => {
-    if (e.target.value === subtitles?.[index]) {
-      console.log("correct!");
-
-      const form = e.target.form;
-      (form?.elements[index + 1] as HTMLInputElement).focus();
-
-      e.preventDefault();
-    } else {
-      console.log("wrong!");
+    if (event.target.value === letter) {
+      if (letterIndex === captions[currentIndex].letterList.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+        (videoElement as HTMLVideoElement).play();
+      } else {
+        const form = event.target.form;
+        (form?.elements[letterIndex + 1] as HTMLInputElement).focus();
+        event.preventDefault();
+      }
     }
   };
 
+  const currentCaption = captions.find((v) => v.index === currentIndex);
+  if (currentCaption == null) {
+    return null;
+  }
+
   return (
-    <div className="card-container">
+    <div className="card">
       <form className="form">
-        {subtitles?.split("").map((s, i) => (
+        {currentCaption.letterList.map((letter, letterIndex) => (
           <input
-            key={i}
-            placeholder={s}
-            maxLength={1}
+            key={`${currentCaption.index}-${letterIndex}`}
             className="input"
-            onChange={(e) => onInputLetter(e, i)}
+            maxLength={1}
+            onChange={(event) => onInput(event, letter, letterIndex)}
           />
         ))}
       </form>
