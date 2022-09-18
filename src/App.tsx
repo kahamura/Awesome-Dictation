@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 
 interface Caption {
@@ -81,6 +81,13 @@ const App: React.FC = () => {
       )?.focus();
     }
   };
+
+  useEffect(() => {
+    const inputContainer =
+      document.getElementsByClassName("input-container")[0];
+
+    (inputContainer?.children?.item(0) as HTMLInputElement)?.focus();
+  }, [captions]);
 
   const currentCaption = captions.find((v) => v.index === currentIndex);
   if (currentCaption == null) {
