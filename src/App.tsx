@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 
 interface Caption {
-  index: number;
   textContent: string;
   words: string[][];
 }
@@ -22,18 +21,10 @@ const App: React.FC = () => {
       const textContent =
         captionContainerElement.textContent?.replace(/^- */g, "") ?? "";
 
-      const captionElement = document.getElementsByClassName(
-        "caption-window ytp-caption-window-bottom"
-      )[0];
-      const index = captionElement
-        ?.getAttribute("id")
-        ?.replace(/^caption-window-_/g, "");
-
       setCaptions((c) => {
         return [
           ...c,
           {
-            index: Number(index),
             textContent,
             words: textContent.split(" ").map((w) => w.split("")),
           },
@@ -59,7 +50,7 @@ const App: React.FC = () => {
     const currentInputContainer =
       document.getElementsByClassName("input-container")[wordIndex];
 
-    if (value !== correctAnswer) {
+    if (value.toLowerCase() !== correctAnswer.toLowerCase()) {
       (
         currentInputContainer.children.item(letterIndex) as HTMLInputElement
       ).value = "";
@@ -94,25 +85,26 @@ const App: React.FC = () => {
     (inputContainer?.children?.item(0) as HTMLInputElement)?.focus();
   }, [captions]);
 
-  const currentCaption = captions.find((v) => v.index === currentIndex);
-  console.log(currentCaption);
+  const currentCaption = captions[currentIndex];
 
   return (
     <div className="card">
       <form className="form">
         {currentCaption?.words?.map((word, wordIndex) => (
           <div key={wordIndex} className="input-container">
-            {word.map((letter, letterIndex) => (
-              <input
-                key={`${currentCaption.index}-${wordIndex}-${letterIndex}`}
-                className="input"
-                maxLength={1}
-                placeholder={letter}
-                onChange={(event) =>
-                  onInput(event.target.value, letter, wordIndex, letterIndex)
-                }
-              />
-            ))}
+            {word.map((letter, letterIndex) => {
+              return (
+                <input
+                  key={`${currentIndex}-${wordIndex}-${letterIndex}`}
+                  className="input"
+                  maxLength={1}
+                  placeholder={letter}
+                  onChange={(event) =>
+                    onInput(event.target.value, letter, wordIndex, letterIndex)
+                  }
+                />
+              );
+            })}
           </div>
         ))}
       </form>
