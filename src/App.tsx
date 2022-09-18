@@ -19,7 +19,7 @@ const App: React.FC = () => {
 
     const observer = new MutationObserver(() => {
       const textContent =
-        captionContainerElement.textContent?.replace(/^- */g, "") ?? "";
+        captionContainerElement.textContent?.replace(/^- *|-/g, "") ?? "";
 
       setCaptions((c) => {
         return [
@@ -58,7 +58,10 @@ const App: React.FC = () => {
     }
 
     // 単語の最後の文字だったら、次の単語の先頭にフォーカスする
-    if (currentInputContainer.childElementCount === letterIndex + 1) {
+    if (
+      currentInputContainer.getElementsByTagName("input").length ===
+      letterIndex + 1
+    ) {
       const nextInputContainer =
         document.getElementsByClassName("input-container")[wordIndex + 1];
 
@@ -93,12 +96,21 @@ const App: React.FC = () => {
         {currentCaption?.words?.map((word, wordIndex) => (
           <div key={wordIndex} className="input-container">
             {word.map((letter, letterIndex) => {
+              if (/[.,-]/.test(letter)) {
+                return (
+                  <span
+                    key={`${currentIndex}-${wordIndex}-${letterIndex}`}
+                    className="text"
+                  >
+                    {letter}
+                  </span>
+                );
+              }
               return (
                 <input
                   key={`${currentIndex}-${wordIndex}-${letterIndex}`}
                   className="input"
                   maxLength={1}
-                  placeholder={letter}
                   onChange={(event) =>
                     onInput(event.target.value, letter, wordIndex, letterIndex)
                   }
