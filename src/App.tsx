@@ -14,12 +14,13 @@ const App: React.FC = () => {
   const videoElement = document.getElementsByClassName("video-stream")[0];
 
   useEffect(() => {
-    const subsElement = document.getElementsByClassName(
+    const captionContainerElement = document.getElementsByClassName(
       "ytp-caption-window-container"
     )[0];
 
     const observer = new MutationObserver(() => {
-      const textContent = subsElement.textContent?.replace(/^- */g, "") ?? "";
+      const textContent =
+        captionContainerElement.textContent?.replace(/^- */g, "") ?? "";
 
       const captionElement = document.getElementsByClassName(
         "caption-window ytp-caption-window-bottom"
@@ -42,7 +43,7 @@ const App: React.FC = () => {
       (videoElement as HTMLVideoElement).pause();
     });
 
-    observer.observe(subsElement, { childList: true });
+    observer.observe(captionContainerElement, { childList: true });
 
     return () => {
       observer.disconnect();
@@ -55,11 +56,15 @@ const App: React.FC = () => {
     wordIndex: number,
     letterIndex: number
   ) => {
-    if (value !== correctAnswer) {
-      return;
-    }
     const currentInputContainer =
       document.getElementsByClassName("input-container")[wordIndex];
+
+    if (value !== correctAnswer) {
+      (
+        currentInputContainer.children.item(letterIndex) as HTMLInputElement
+      ).value = "";
+      return;
+    }
 
     // 単語の最後の文字だったら、次の単語の先頭にフォーカスする
     if (currentInputContainer.childElementCount === letterIndex + 1) {
@@ -90,21 +95,19 @@ const App: React.FC = () => {
   }, [captions]);
 
   const currentCaption = captions.find((v) => v.index === currentIndex);
-  if (currentCaption == null) {
-    return null;
-  }
   console.log(currentCaption);
 
   return (
     <div className="card">
       <form className="form">
-        {currentCaption.words.map((word, wordIndex) => (
+        {currentCaption?.words?.map((word, wordIndex) => (
           <div key={wordIndex} className="input-container">
             {word.map((letter, letterIndex) => (
               <input
                 key={`${currentCaption.index}-${wordIndex}-${letterIndex}`}
                 className="input"
                 maxLength={1}
+                placeholder={letter}
                 onChange={(event) =>
                   onInput(event.target.value, letter, wordIndex, letterIndex)
                 }
