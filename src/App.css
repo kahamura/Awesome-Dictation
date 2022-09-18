@@ -16,6 +16,10 @@
   flex-wrap: wrap;
 }
 
+.input-container {
+  margin-right: 16px;
+}
+
 .input {
   width: 16px;
   text-align: center;

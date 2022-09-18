@@ -4,8 +4,7 @@ import "./App.css";
 interface Caption {
   index: number;
   textContent: string;
-  wordList: string[];
-  letterList: string[];
+  words: string[][];
 }
 
 const App: React.FC = () => {
@@ -35,8 +34,7 @@ const App: React.FC = () => {
           {
             index: Number(index),
             textContent,
-            wordList: textContent.split(" "),
-            letterList: textContent.split(""),
+            words: textContent.split(" ").map((w) => w.split("")),
           },
         ];
       });
@@ -52,19 +50,35 @@ const App: React.FC = () => {
   }, []);
 
   const onInput = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    letter: string,
+    value: string,
+    correctAnswer: string,
+    wordIndex: number,
     letterIndex: number
   ) => {
-    if (event.target.value === letter) {
-      if (letterIndex === captions[currentIndex].letterList.length - 1) {
+    if (value !== correctAnswer) {
+      return;
+    }
+    const currentInputContainer =
+      document.getElementsByClassName("input-container")[wordIndex];
+
+    // 単語の最後の文字だったら、次の単語の先頭にフォーカスする
+    if (currentInputContainer.childElementCount === letterIndex + 1) {
+      const nextInputContainer =
+        document.getElementsByClassName("input-container")[wordIndex + 1];
+
+      if (nextInputContainer == null) {
         setCurrentIndex(currentIndex + 1);
         (videoElement as HTMLVideoElement).play();
-      } else {
-        const form = event.target.form;
-        (form?.elements[letterIndex + 1] as HTMLInputElement).focus();
-        event.preventDefault();
+        return;
       }
+
+      (nextInputContainer.children.item(0) as HTMLInputElement)?.focus();
+    }
+    // 次の入力欄にフォーカスする
+    else {
+      (
+        currentInputContainer.children.item(letterIndex + 1) as HTMLInputElement
+      )?.focus();
     }
   };
 
@@ -72,17 +86,24 @@ const App: React.FC = () => {
   if (currentCaption == null) {
     return null;
   }
+  console.log(currentCaption);
 
   return (
     <div className="card">
       <form className="form">
-        {currentCaption.letterList.map((letter, letterIndex) => (
-          <input
-            key={`${currentCaption.index}-${letterIndex}`}
-            className="input"
-            maxLength={1}
-            onChange={(event) => onInput(event, letter, letterIndex)}
-          />
+        {currentCaption.words.map((word, wordIndex) => (
+          <div key={wordIndex} className="input-container">
+            {word.map((letter, letterIndex) => (
+              <input
+                key={`${currentCaption.index}-${wordIndex}-${letterIndex}`}
+                className="input"
+                maxLength={1}
+                onChange={(event) =>
+                  onInput(event.target.value, letter, wordIndex, letterIndex)
+                }
+              />
+            ))}
+          </div>
         ))}
       </form>
     </div>
